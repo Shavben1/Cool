@@ -1,10 +1,16 @@
 :root {
-    color-scheme: light dark;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background-color: #020617;
-    background-image: radial-gradient(circle at top left, rgba(59, 130, 246, 0.25), transparent),
-                      radial-gradient(circle at bottom right, rgba(236, 72, 153, 0.2), transparent);
-    min-height: 100%;
+    color-scheme: light;
+    --bg: #f8f6f2;
+    --panel: #ffffff;
+    --accent: #2f7d57;
+    --accent-soft: #d9efe3;
+    --text: #1f1f1f;
+    --muted: #5f6368;
+    --border: rgba(31, 31, 31, 0.08);
+    --shadow: 0 16px 40px -24px rgba(18, 61, 37, 0.45);
+    --radius-lg: 24px;
+    --radius-md: 16px;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
 * {
@@ -14,226 +20,338 @@
 body {
     margin: 0;
     min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    color: #e2e8f0;
-}
-
-.chat-card {
-    width: min(640px, 100%);
-    background: rgba(15, 23, 42, 0.85);
-    border: 1px solid rgba(148, 163, 184, 0.25);
-    border-radius: 24px;
-    padding: 32px;
-    box-shadow: 0 24px 56px rgba(15, 23, 42, 0.65);
-    backdrop-filter: blur(18px);
+    background: radial-gradient(circle at top right, rgba(47, 125, 87, 0.12), transparent 55%), var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    line-height: 1.6;
     display: flex;
     flex-direction: column;
-    gap: 24px;
 }
 
-.chat-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 24px;
+img {
+    max-width: 100%;
+    display: block;
 }
 
-.chat-header h1 {
-    font-size: 2.6rem;
+.container {
+    width: min(1100px, 94vw);
+    margin: 0 auto;
+}
+
+.site-header {
+    padding: 3.5rem 0 2.5rem;
+    text-align: center;
+}
+
+.site-title {
     margin: 0;
-    font-weight: 600;
+    font-size: clamp(2.1rem, 4vw, 2.75rem);
+    font-weight: 700;
 }
 
-.chat-subtitle {
-    margin: 4px 0 0;
+.site-tagline {
+    margin: 0.8rem auto 0;
+    max-width: 46ch;
+    color: var(--muted);
     font-size: 1.05rem;
-    color: rgba(226, 232, 240, 0.75);
 }
 
-.status-indicator {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(34, 211, 238, 0.12);
-    padding: 8px 16px;
-    border-radius: 999px;
-    border: 1px solid rgba(94, 234, 212, 0.25);
-    font-size: 0.95rem;
-    color: #5eead4;
-}
-
-.status-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background: #34d399;
-    box-shadow: 0 0 12px rgba(52, 211, 153, 0.65);
-}
-
-.chat-log {
-    display: flex;
-    flex-direction: column;
-    gap: 18px;
-    max-height: 460px;
-    overflow-y: auto;
-    padding-right: 6px;
-    scroll-behavior: smooth;
-}
-
-.chat-log:focus-visible {
-    outline: 2px solid #38bdf8;
-    outline-offset: 4px;
-}
-
-.message {
+.layout {
     display: grid;
-    gap: 6px;
-    padding: 18px 20px;
-    border-radius: 18px;
-    border: 1px solid transparent;
-    line-height: 1.55;
+    gap: 2.5rem;
+    padding-bottom: 4rem;
+}
+
+@media (min-width: 900px) {
+    .layout {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+        align-items: start;
+    }
+}
+
+.panel {
+    background: var(--panel);
+    border-radius: var(--radius-lg);
+    padding: clamp(1.5rem, 4vw, 2.25rem);
+    box-shadow: var(--shadow);
+    position: relative;
+}
+
+.panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    border: 1px solid var(--border);
+    pointer-events: none;
+}
+
+.panel-header h2 {
+    margin: 0;
+    font-size: 1.75rem;
+    letter-spacing: -0.01em;
+}
+
+.section-lead {
+    margin: 0.75rem 0 1.75rem;
+    color: var(--muted);
     font-size: 1rem;
 }
 
-.message-user {
-    background: rgba(37, 99, 235, 0.18);
-    border-color: rgba(96, 165, 250, 0.35);
-    justify-self: flex-end;
-    margin-left: 72px;
-}
-
-.message-ai {
-    background: rgba(15, 23, 42, 0.95);
-    border-color: rgba(148, 163, 184, 0.25);
-    margin-right: 72px;
-}
-
-.message-meta {
-    display: flex;
-    align-items: baseline;
-    gap: 12px;
-    font-size: 0.85rem;
-    color: rgba(148, 163, 184, 0.9);
-}
-
-.message-ai .message-author {
-    color: #38bdf8;
-}
-
-.message-user .message-author {
-    color: #a855f7;
-}
-
-.message-time {
-    font-variant-numeric: tabular-nums;
-}
-
-.message-content {
-    margin: 0;
-}
-
-.typing-indicator {
-    display: inline-flex;
-    gap: 6px;
-    align-self: flex-start;
-    background: rgba(15, 23, 42, 0.95);
-    border-radius: 999px;
-    padding: 10px 14px;
-    border: 1px solid rgba(148, 163, 184, 0.25);
-}
-
-.typing-indicator span {
-    width: 8px;
-    height: 8px;
-    background: #38bdf8;
-    border-radius: 50%;
-    animation: blink 1.4s infinite ease-in-out;
-}
-
-.typing-indicator span:nth-child(2) {
-    animation-delay: 0.2s;
-}
-
-.typing-indicator span:nth-child(3) {
-    animation-delay: 0.4s;
-}
-
-@keyframes blink {
-    0%, 80%, 100% { opacity: 0.3; transform: translateY(0); }
-    40% { opacity: 1; transform: translateY(-2px); }
-}
-
-.suggestions {
+.pantry-input {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
 }
 
-.suggestion {
-    appearance: none;
-    border: none;
-    border-radius: 999px;
-    padding: 10px 16px;
-    font-size: 0.95rem;
-    cursor: pointer;
-    background: rgba(56, 189, 248, 0.14);
-    color: #bae6fd;
-    transition: transform 0.2s ease, background 0.2s ease;
+.pantry-input input {
+    flex: 1 1 220px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1.1rem;
+    font-size: 1rem;
+    background: #fafafa;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.suggestion:hover {
-    transform: translateY(-1px);
-    background: rgba(56, 189, 248, 0.22);
-}
-
-.chat-input {
-    display: flex;
-    gap: 14px;
-    align-items: center;
-    background: rgba(15, 23, 42, 0.9);
-    border-radius: 18px;
-    padding: 12px 16px 12px 20px;
-    border: 1px solid rgba(148, 163, 184, 0.2);
-}
-
-.chat-input input[type="text"] {
-    flex: 1;
-    background: transparent;
-    border: none;
-    color: inherit;
-    font-size: 1.05rem;
-    padding: 8px 0;
-}
-
-.chat-input input[type="text"]:focus {
+.pantry-input input:focus {
     outline: none;
+    border-color: rgba(47, 125, 87, 0.55);
+    box-shadow: 0 0 0 4px rgba(47, 125, 87, 0.18);
 }
 
 .primary-button {
-    appearance: none;
+    flex: 0 0 auto;
     border: none;
-    border-radius: 999px;
-    padding: 14px 22px;
-    font-size: 1.05rem;
+    border-radius: var(--radius-md);
+    padding: 0.85rem 1.4rem;
+    font-size: 1rem;
     font-weight: 600;
+    background: var(--accent);
+    color: white;
     cursor: pointer;
-    color: #0f172a;
-    background: linear-gradient(135deg, #38bdf8, #0ea5e9);
-    box-shadow: 0 12px 28px rgba(14, 165, 233, 0.35);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.primary-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 16px 36px rgba(14, 165, 233, 0.45);
+.primary-button:hover,
+.primary-button:focus-visible {
+    transform: translateY(-1px);
+    box-shadow: 0 10px 22px -16px rgba(17, 91, 60, 0.7);
 }
 
-.primary-button:active {
-    transform: translateY(0);
-    box-shadow: 0 10px 22px rgba(14, 165, 233, 0.35);
+.suggested-ingredients h3,
+.current-ingredients h3,
+.shopping-list h3 {
+    margin: 0 0 0.75rem;
+    font-size: 1.1rem;
+}
+
+.ingredient-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+}
+
+.chip {
+    border: 1px solid rgba(47, 125, 87, 0.3);
+    background: rgba(47, 125, 87, 0.08);
+    color: var(--accent);
+    border-radius: 999px;
+    padding: 0.4rem 0.95rem;
+    font-size: 0.95rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.chip:hover,
+.chip:focus-visible {
+    background: rgba(47, 125, 87, 0.18);
+    transform: translateY(-1px);
+}
+
+.ingredient-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    padding: 0;
+    margin: 0 0 1.25rem;
+    list-style: none;
+}
+
+.ingredient-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    background: var(--accent-soft);
+    color: var(--accent);
+    padding: 0.5rem 0.9rem;
+    border-radius: 999px;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(47, 125, 87, 0.25);
+}
+
+.ingredient-pill button {
+    border: none;
+    background: rgba(255, 255, 255, 0.65);
+    color: var(--accent);
+    border-radius: 50%;
+    width: 1.6rem;
+    height: 1.6rem;
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.ingredient-pill button:hover,
+.ingredient-pill button:focus-visible {
+    background: rgba(47, 125, 87, 0.18);
+    transform: scale(1.05);
+}
+
+.cta-button {
+    width: 100%;
+    border: none;
+    border-radius: var(--radius-md);
+    padding: 1rem 1.5rem;
+    font-size: 1.05rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, var(--accent), #49a07c);
+    color: white;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cta-button:hover,
+.cta-button:focus-visible {
+    transform: translateY(-2px);
+    box-shadow: 0 18px 32px -22px rgba(17, 91, 60, 0.9);
+}
+
+.suggestions-list {
+    display: grid;
+    gap: 1.75rem;
+}
+
+.meal-card {
+    border-radius: var(--radius-lg);
+    padding: clamp(1.25rem, 2vw, 1.75rem);
+    border: 1px solid var(--border);
+    background: #fff;
+    box-shadow: 0 18px 36px -30px rgba(18, 61, 37, 0.35);
+}
+
+.meal-card__header {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.meal-card__header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+}
+
+.meal-description {
+    margin: 0.35rem 0 0;
+    color: var(--muted);
+}
+
+.meal-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.meal-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.35rem 0.7rem;
+    border-radius: 999px;
+    background: rgba(47, 125, 87, 0.1);
+    color: var(--accent);
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.meal-coverage {
+    margin: 1rem 0;
+    font-size: 0.98rem;
+}
+
+.meal-steps h4,
+.meal-missing h4 {
+    margin-bottom: 0.6rem;
+    font-size: 1rem;
+}
+
+.meal-steps ol {
+    margin: 0;
+    padding-left: 1.3rem;
+    display: grid;
+    gap: 0.4rem;
+}
+
+.meal-missing ul {
+    margin: 0;
+    padding-left: 1.2rem;
+    display: grid;
+    gap: 0.35rem;
+}
+
+.meal-missing .all-set {
+    margin: 0;
+    color: var(--accent);
+    font-weight: 600;
+}
+
+.shopping-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.6rem;
+}
+
+.shopping-list li {
+    display: flex;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: var(--radius-md);
+    border: 1px solid rgba(47, 125, 87, 0.15);
+    background: rgba(47, 125, 87, 0.05);
+    font-weight: 500;
+}
+
+.shopping-list li em {
+    font-style: normal;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.empty-state {
+    margin: 0;
+    padding: 1rem 1.2rem;
+    border-radius: var(--radius-md);
+    background: rgba(31, 31, 31, 0.05);
+    color: var(--muted);
+    font-size: 0.95rem;
+}
+
+.site-footer {
+    margin-top: auto;
+    padding: 2.5rem 0 3.5rem;
+    text-align: center;
+    color: var(--muted);
+    font-size: 0.95rem;
 }
 
 .sr-only {
@@ -248,31 +366,32 @@ body {
     border: 0;
 }
 
-@media (max-width: 720px) {
-    body {
-        padding: 16px;
+.pulse {
+    animation: pulse 0.4s ease;
+}
+
+@keyframes pulse {
+    from {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+@media (max-width: 600px) {
+    .panel {
+        padding: 1.5rem;
     }
 
-    .chat-card {
-        padding: 28px 22px;
-        gap: 20px;
+    .meal-card__header {
+        gap: 0.75rem;
     }
 
-    .chat-header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .chat-log {
-        max-height: 60vh;
-    }
-
-    .message-user {
-        margin-left: 36px;
-    }
-
-    .message-ai {
-        margin-right: 36px;
+    .meal-card__header h3 {
+        font-size: 1.25rem;
     }
 }

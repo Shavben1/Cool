@@ -3,296 +3,338 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Nova · AI Chatbot</title>
+    <title>Mealify · Smart meal ideas from your pantry</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <main class="chat-card" aria-labelledby="chatTitle">
-        <header class="chat-header">
-            <div>
-                <h1 id="chatTitle">Nova</h1>
-                <p class="chat-subtitle">Your curious, always-on AI companion</p>
-            </div>
-            <div class="status-indicator" role="status" aria-live="polite">
-                <span class="status-dot" aria-hidden="true"></span>
-                Online
-            </div>
-        </header>
-
-        <section id="chatLog" class="chat-log" role="log" aria-live="polite" aria-label="Conversation"></section>
-
-        <div class="suggestions" aria-label="Quick prompt suggestions">
-            <button type="button" class="suggestion" data-message="Give me a productivity tip.">Productivity tip</button>
-            <button type="button" class="suggestion" data-message="Explain quantum computing like I'm five.">Explain quantum computing</button>
-            <button type="button" class="suggestion" data-message="Help me plan a healthy dinner.">Plan a healthy dinner</button>
+    <header class="site-header">
+        <div class="container">
+            <h1 class="site-title">Mealify</h1>
+            <p class="site-tagline">Turn what you already have into delicious, doable meals with quick prep steps and a ready-made shopping list.</p>
         </div>
+    </header>
 
-        <form id="chatForm" class="chat-input" autocomplete="off">
-            <label class="sr-only" for="userMessage">Message</label>
-            <input id="userMessage" name="message" type="text" placeholder="Ask Nova anything…" required aria-required="true">
-            <button type="submit" class="primary-button">Send</button>
-        </form>
+    <main class="container layout" aria-labelledby="pantryTitle resultsTitle">
+        <section class="panel pantry" aria-labelledby="pantryTitle">
+            <div class="panel-header">
+                <h2 id="pantryTitle">What&#8217;s in your kitchen?</h2>
+                <p class="section-lead">Add ingredients from your fridge or pantry. We&#8217;ll match them to meals that make the most of what you already own.</p>
+            </div>
+
+            <form id="pantryForm" class="pantry-input" autocomplete="off">
+                <label class="sr-only" for="ingredientInput">Ingredient name</label>
+                <input id="ingredientInput" name="ingredient" type="text" placeholder="Add an ingredient (e.g., chickpeas)" required>
+                <button type="submit" class="primary-button">Add ingredient</button>
+            </form>
+
+            <div class="suggested-ingredients" aria-label="Popular pantry ingredients">
+                <h3>Popular pantry items</h3>
+                <div class="ingredient-chips" role="list">
+                    <button type="button" class="chip" data-ingredient="eggs">Eggs</button>
+                    <button type="button" class="chip" data-ingredient="chicken breast">Chicken breast</button>
+                    <button type="button" class="chip" data-ingredient="spinach">Spinach</button>
+                    <button type="button" class="chip" data-ingredient="rice">Rice</button>
+                    <button type="button" class="chip" data-ingredient="pasta">Pasta</button>
+                    <button type="button" class="chip" data-ingredient="sweet potato">Sweet potato</button>
+                    <button type="button" class="chip" data-ingredient="tomato">Tomato</button>
+                    <button type="button" class="chip" data-ingredient="black beans">Black beans</button>
+                    <button type="button" class="chip" data-ingredient="garlic">Garlic</button>
+                    <button type="button" class="chip" data-ingredient="yogurt">Yogurt</button>
+                </div>
+            </div>
+
+            <div class="current-ingredients" aria-live="polite">
+                <h3>My ingredients</h3>
+                <ul id="currentIngredients" class="ingredient-list"></ul>
+                <p id="emptyPantry" class="empty-state">No ingredients yet. Add a few to start planning your next meal!</p>
+            </div>
+
+            <button id="findMeals" type="button" class="cta-button">Find meals</button>
+        </section>
+
+        <section class="panel results" aria-labelledby="resultsTitle">
+            <div class="panel-header">
+                <h2 id="resultsTitle">Meal suggestions</h2>
+                <p class="section-lead">Mealify analyses your ingredients to suggest meals, share the fastest prep steps, and list what to pick up from the store.</p>
+            </div>
+
+            <div id="results" class="suggestions-list" aria-live="polite"></div>
+
+            <div class="shopping-list" aria-live="polite">
+                <h3>Shopping list</h3>
+                <ul id="shoppingList"></ul>
+                <p id="shoppingEmpty" class="empty-state">You&#8217;re fully stocked&mdash;no extra ingredients needed!</p>
+            </div>
+        </section>
     </main>
 
-    <template id="messageTemplate">
-        <article class="message">
-            <div class="message-meta">
-                <span class="message-author"></span>
-                <time class="message-time" aria-hidden="true"></time>
-            </div>
-            <p class="message-content"></p>
-        </article>
+    <footer class="site-footer">
+        <div class="container">
+            <p>Mealify is your kitchen co-pilot. Save your favorites and experiment freely &mdash; no endless scrolling for recipes required.</p>
+        </div>
+    </footer>
+
+    <template id="ingredientTemplate">
+        <li class="ingredient-pill">
+            <span class="ingredient-name"></span>
+            <button type="button" class="remove-ingredient" aria-label="Remove ingredient">&times;</button>
+        </li>
     </template>
 
     <script>
-        const chatLog = document.getElementById('chatLog');
-        const chatForm = document.getElementById('chatForm');
-        const userMessageInput = document.getElementById('userMessage');
-        const messageTemplate = document.getElementById('messageTemplate');
-        const suggestions = document.querySelectorAll('.suggestion');
+        const pantryForm = document.getElementById('pantryForm');
+        const ingredientInput = document.getElementById('ingredientInput');
+        const currentIngredientsList = document.getElementById('currentIngredients');
+        const emptyPantryMessage = document.getElementById('emptyPantry');
+        const findMealsButton = document.getElementById('findMeals');
+        const resultsContainer = document.getElementById('results');
+        const shoppingListContainer = document.getElementById('shoppingList');
+        const shoppingEmptyState = document.getElementById('shoppingEmpty');
+        const ingredientTemplate = document.getElementById('ingredientTemplate');
 
-        const conversationHistory = [];
+        const pantryIngredients = new Map();
 
-        const knowledgeBase = [
+        const meals = [
             {
-                keywords: ['hello', 'hi', 'hey', 'greetings'],
-                responses: [
-                    'Hey there! How can I brighten your day?',
-                    'Hello! Ready to explore something new together?',
-                    'Hi! What would you like to chat about?'
-                ]
+                name: 'Mediterranean Chickpea Salad',
+                description: 'A bright, protein-packed salad with crisp veggies and a lemony dressing.',
+                ingredients: ['chickpeas', 'cucumber', 'tomato', 'red onion', 'feta cheese', 'olive oil', 'lemon', 'parsley'],
+                steps: [
+                    'Rinse and dry the chickpeas, then season with salt and pepper.',
+                    'Chop cucumber, tomato, onion, and parsley into bite-sized pieces.',
+                    'Whisk olive oil with lemon juice; toss everything together with crumbled feta.'
+                ],
+                tags: ['15 min', 'Vegetarian']
             },
             {
-                keywords: ['time', 'date', 'day'],
-                responder: () => {
-                    const now = new Date();
-                    const formatted = new Intl.DateTimeFormat([], {
-                        weekday: 'long',
-                        hour: 'numeric',
-                        minute: '2-digit'
-                    }).format(now);
-                    return `It\'s ${formatted}. Plenty of time to learn something cool.`;
-                }
+                name: 'Garlic Shrimp Pasta',
+                description: 'Silky garlic butter shrimp tossed with al dente pasta and spinach.',
+                ingredients: ['pasta', 'shrimp', 'garlic', 'butter', 'spinach', 'lemon', 'parmesan'],
+                steps: [
+                    'Boil pasta until al dente, reserving a cup of the cooking water.',
+                    'Sauté garlic in butter, then add shrimp and cook until pink.',
+                    'Toss in spinach, pasta, and a splash of pasta water; finish with lemon and parmesan.'
+                ],
+                tags: ['25 min', 'Seafood']
             },
             {
-                keywords: ['joke', 'laugh'],
-                responses: [
-                    'Why did the neural network take up meditation? To reduce its inner error.',
-                    'I told a joke to an algorithm once. It didn\'t get it, but it tried to optimize its response anyway!',
-                    'What do you call a robot who takes the scenic route? A detour-ministic system.'
-                ]
+                name: 'Sheet-Pan Lemon Chicken',
+                description: 'Roasted chicken and vegetables with golden edges and a zesty glaze.',
+                ingredients: ['chicken breast', 'potato', 'broccoli', 'garlic', 'lemon', 'olive oil', 'paprika'],
+                steps: [
+                    'Preheat oven to 425°F (220°C) and line a baking sheet.',
+                    'Toss chicken and veggies with olive oil, garlic, paprika, salt, and pepper.',
+                    'Roast for 20-25 minutes; finish with lemon zest and juice.'
+                ],
+                tags: ['40 min', 'One-pan']
             },
             {
-                keywords: ['productivity', 'focus', 'motivation'],
-                responses: [
-                    'Try the 50/10 rhythm: work with full focus for 50 minutes, then give yourself 10 minutes to reset. Your brain will thank you.',
-                    'A productivity boost tip: decide on the single most important outcome for the next hour, then block everything else until it\'s done.'
-                ]
+                name: 'Black Bean Tacos',
+                description: 'Smoky black beans piled into warm tortillas with crunchy toppings.',
+                ingredients: ['black beans', 'tortillas', 'onion', 'garlic', 'lime', 'cumin', 'avocado', 'cilantro'],
+                steps: [
+                    'Sauté onion and garlic with cumin until fragrant.',
+                    'Add black beans with a splash of water; mash slightly and season.',
+                    'Load tortillas with beans and finish with avocado, cilantro, and lime.'
+                ],
+                tags: ['20 min', 'Vegan']
             },
             {
-                keywords: ['quantum', 'physics'],
-                responses: [
-                    'Imagine classical bits as coins that are either heads or tails. Quantum bits are like coins spinning in the air—able to be a mix of both until observed.',
-                    'Quantum computing lets us use superposition and entanglement to solve certain problems much faster than classical machines could dream of.'
-                ]
+                name: 'Creamy Yogurt Parfait',
+                description: 'Layered yogurt, fruit, and crunch for a breakfast that feels like dessert.',
+                ingredients: ['yogurt', 'berries', 'granola', 'honey', 'chia seeds'],
+                steps: [
+                    'Spoon yogurt into a glass or bowl.',
+                    'Layer with berries, granola, and a drizzle of honey.',
+                    'Sprinkle chia seeds on top for extra texture.'
+                ],
+                tags: ['5 min', 'Breakfast']
             },
             {
-                keywords: ['plan', 'dinner', 'meal', 'recipe'],
-                responses: [
-                    'How about grilled salmon with roasted vegetables and a quinoa salad? Balanced, bright, and quick to put together.',
-                    'Consider a veggie stir-fry with tofu, bell peppers, snow peas, and a ginger soy glaze served over brown rice. Delicious and nourishing!'
-                ]
+                name: 'Sweet Potato Power Bowl',
+                description: 'Roasted sweet potato, greens, and beans with a tangy yogurt drizzle.',
+                ingredients: ['sweet potato', 'spinach', 'chickpeas', 'olive oil', 'smoked paprika', 'yogurt', 'lime'],
+                steps: [
+                    'Roast cubed sweet potato with olive oil, paprika, salt, and pepper.',
+                    'Warm chickpeas in a skillet with spices.',
+                    'Build bowls with spinach, sweet potato, chickpeas, and yogurt-lime sauce.'
+                ],
+                tags: ['30 min', 'Vegetarian']
             },
             {
-                keywords: ['stressed', 'overwhelmed', 'anxious'],
-                responses: [
-                    'Take a gentle breath in for 4 counts, hold for 4, and exhale for 6. Let the nervous system settle, then we can plan your next step.',
-                    'It\'s okay to feel overwhelmed. Let\'s break things into the smallest next action so it feels manageable.'
-                ]
+                name: 'Herby Egg Fried Rice',
+                description: 'A fast skillet rice with scrambled eggs, herbs, and crunchy veggies.',
+                ingredients: ['rice', 'eggs', 'carrot', 'peas', 'green onion', 'soy sauce', 'sesame oil'],
+                steps: [
+                    'Scramble eggs in a hot skillet, then set aside.',
+                    'Sauté carrot and peas until tender-crisp.',
+                    'Add cooked rice, soy sauce, sesame oil, and eggs; finish with green onion.'
+                ],
+                tags: ['15 min', 'Fast']
             }
         ];
 
-        const fallbackResponses = [
-            'That\'s fascinating. Tell me more so I can keep up with you.',
-            'I\'m piecing that together—what outcome would make this feel like a win?',
-            'Curious! I can help brainstorm, explain, or just listen. Where should we start?',
-            'Let\'s explore that. What\'s the part you\'re most unsure about?'
-        ];
-
-        const contextualResponses = [
-            (input) => {
-                if (/(who|what) are you|your name/.test(input)) {
-                    return 'I\'m Nova, a friendly AI buddy living entirely in your browser. I draw from patterns, context, and a splash of curiosity to respond.';
-                }
-                return null;
-            },
-            (input) => {
-                if (/help|assist/.test(input)) {
-                    return 'I\'m here to help! Ask me for explanations, brainstorming, daily planning, or just a thoughtful conversation.';
-                }
-                return null;
-            },
-            (input) => {
-                const match = input.match(/define (.+)/);
-                if (match) {
-                    return `Let\'s break down “${match[1]}”. What about it has you curious?`;
-                }
-                return null;
-            },
-            (input) => {
-                if (/thank/.test(input)) {
-                    return 'Happy to help! If anything else pops up, I\'m just a message away.';
-                }
-                return null;
-            },
-            (input) => {
-                if (/weather/.test(input)) {
-                    return 'I don\'t have real-time weather data, but I can help you plan for a sunny, rainy, or cozy day regardless!';
-                }
-                return null;
-            },
-            (input) => {
-                if (/idea|brainstorm/.test(input)) {
-                    const topics = conversationHistory.slice(-3).map(item => item.text).join('; ');
-                    return `Okay, let\'s ideate. From what I\'ve heard so far (${topics || 'just getting started'}), what would progress look like to you?`;
-                }
-                return null;
-            }
-        ];
-
-        function addMessage(content, author) {
-            const clone = messageTemplate.content.cloneNode(true);
-            const article = clone.querySelector('.message');
-            article.classList.add(author === 'Nova' ? 'message-ai' : 'message-user');
-
-            const authorEl = clone.querySelector('.message-author');
-            const timeEl = clone.querySelector('.message-time');
-            const contentEl = clone.querySelector('.message-content');
-
-            authorEl.textContent = author;
-            contentEl.textContent = content;
-            timeEl.textContent = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).format(new Date());
-
-            chatLog.appendChild(clone);
-            chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
+        function normalizeIngredient(value) {
+            return value.trim().toLowerCase();
         }
 
-        function showTypingIndicator() {
-            const typing = document.createElement('div');
-            typing.className = 'typing-indicator';
-            typing.setAttribute('role', 'status');
-            typing.innerHTML = `<span></span><span></span><span></span>`;
-            chatLog.appendChild(typing);
-            chatLog.dataset.typing = 'true';
-            chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
+        function formatIngredient(value) {
+            return value.replace(/(^|\s)([a-z])/g, (_, space, letter) => `${space}${letter.toUpperCase()}`);
         }
 
-        function removeTypingIndicator() {
-            const typing = chatLog.querySelector('.typing-indicator');
-            if (typing) {
-                typing.remove();
-            }
-            delete chatLog.dataset.typing;
-        }
-
-        function randomItem(list) {
-            return list[Math.floor(Math.random() * list.length)];
-        }
-
-        function searchKnowledgeBase(input) {
-            const lower = input.toLowerCase();
-            for (const entry of knowledgeBase) {
-                if (entry.keywords.some(keyword => lower.includes(keyword))) {
-                    if (entry.responder) {
-                        return entry.responder(lower);
-                    }
-                    return randomItem(entry.responses);
-                }
-            }
-            return null;
-        }
-
-        function searchContextual(input) {
-            for (const resolver of contextualResponses) {
-                const result = resolver(input);
-                if (result) {
-                    return result;
-                }
-            }
-            return null;
-        }
-
-        function craftAdaptiveResponse(input) {
-            const summary = conversationHistory.slice(-2).map(item => item.text).join(' · ');
-            const prompts = [
-                `You mentioned ${summary || 'we just met'}—where should we go from here?`,
-                `I\'m sensing a theme around ${extractTheme()} so far. Want to explore it deeper?`,
-                'Give me a hint: are we problem-solving, learning, or just vibing right now?'
-            ];
-            return randomItem(prompts);
-        }
-
-        function extractTheme() {
-            const text = conversationHistory.map(item => item.text).join(' ');
-            if (!text) return 'curiosity';
-            if (/work|project|deadline/.test(text)) return 'productivity';
-            if (/learn|study|explain/.test(text)) return 'learning';
-            if (/travel|adventure|trip/.test(text)) return 'travel ideas';
-            if (/health|dinner|meal/.test(text)) return 'wellness';
-            return 'whatever is on your mind';
-        }
-
-        function generateResponse(input) {
-            const contextual = searchContextual(input);
-            if (contextual) {
-                return contextual;
-            }
-
-            const fromKnowledge = searchKnowledgeBase(input);
-            if (fromKnowledge) {
-                return fromKnowledge;
-            }
-
-            return craftAdaptiveResponse(input) || randomItem(fallbackResponses);
-        }
-
-        function handleUserMessage(message) {
-            const trimmed = message.trim();
-            if (!trimmed) {
+        function addIngredient(rawValue) {
+            const normalized = normalizeIngredient(rawValue);
+            if (!normalized) return;
+            if (pantryIngredients.has(normalized)) {
+                highlightExisting(normalized);
                 return;
             }
-            conversationHistory.push({ author: 'You', text: trimmed });
-            addMessage(trimmed, 'You');
-
-            showTypingIndicator();
-
-            setTimeout(() => {
-                removeTypingIndicator();
-                const response = generateResponse(trimmed);
-                conversationHistory.push({ author: 'Nova', text: response });
-                addMessage(response, 'Nova');
-            }, 600 + Math.random() * 600);
+            pantryIngredients.set(normalized, formatIngredient(normalized));
+            ingredientInput.value = '';
+            ingredientInput.focus();
+            renderPantryIngredients();
         }
 
-        chatForm.addEventListener('submit', event => {
-            event.preventDefault();
-            const value = userMessageInput.value;
-            userMessageInput.value = '';
-            handleUserMessage(value);
-            userMessageInput.focus();
-        });
+        function highlightExisting(key) {
+            const existing = currentIngredientsList.querySelector(`[data-ingredient="${key}"]`);
+            if (!existing) return;
+            existing.classList.add('pulse');
+            setTimeout(() => existing.classList.remove('pulse'), 600);
+        }
 
-        suggestions.forEach(button => {
-            button.addEventListener('click', () => {
-                userMessageInput.value = button.dataset.message;
-                userMessageInput.focus();
+        function renderPantryIngredients() {
+            currentIngredientsList.innerHTML = '';
+            if (pantryIngredients.size === 0) {
+                emptyPantryMessage.hidden = false;
+                return;
+            }
+
+            emptyPantryMessage.hidden = true;
+            pantryIngredients.forEach((displayValue, key) => {
+                const pill = ingredientTemplate.content.firstElementChild.cloneNode(true);
+                const name = pill.querySelector('.ingredient-name');
+                const button = pill.querySelector('.remove-ingredient');
+                pill.dataset.ingredient = key;
+                name.textContent = displayValue;
+                button.setAttribute('aria-label', `Remove ${displayValue}`);
+                button.addEventListener('click', () => {
+                    pantryIngredients.delete(key);
+                    renderPantryIngredients();
+                });
+                currentIngredientsList.appendChild(pill);
             });
+        }
+
+        function handlePantrySubmit(event) {
+            event.preventDefault();
+            addIngredient(ingredientInput.value);
+        }
+
+        function renderSuggestions() {
+            const pantryItems = Array.from(pantryIngredients.keys());
+            const pantrySet = new Set(pantryItems);
+            resultsContainer.innerHTML = '';
+            shoppingListContainer.innerHTML = '';
+
+            if (pantryItems.length === 0) {
+                resultsContainer.innerHTML = '<p class="empty-state">Add ingredients to see tailored meal ideas.</p>';
+                shoppingEmptyState.hidden = false;
+                return;
+            }
+
+            const matches = meals
+                .map(meal => {
+                    const have = meal.ingredients.filter(item => pantrySet.has(item));
+                    const missing = meal.ingredients.filter(item => !pantrySet.has(item));
+                    const score = have.length / meal.ingredients.length;
+                    return { ...meal, have, missing, score };
+                })
+                .filter(meal => meal.have.length > 0)
+                .sort((a, b) => b.score - a.score || a.missing.length - b.missing.length || a.name.localeCompare(b.name))
+                .slice(0, 5);
+
+            if (matches.length === 0) {
+                resultsContainer.innerHTML = '<p class="empty-state">No close matches yet. Add a couple more ingredients or try popular pantry items.</p>';
+                shoppingEmptyState.hidden = false;
+                return;
+            }
+
+            const missingSummary = new Map();
+
+            matches.forEach(meal => {
+                const card = document.createElement('article');
+                card.className = 'meal-card';
+
+                const tags = meal.tags?.map(tag => `<span class="meal-tag">${tag}</span>`).join('') || '';
+                const haveCount = meal.have.length;
+                const total = meal.ingredients.length;
+                const coverage = Math.round((haveCount / total) * 100);
+
+                card.innerHTML = `
+                    <header class="meal-card__header">
+                        <div>
+                            <h3>${meal.name}</h3>
+                            <p class="meal-description">${meal.description}</p>
+                        </div>
+                        <div class="meal-tags">${tags}</div>
+                    </header>
+                    <p class="meal-coverage">Using <strong>${haveCount}</strong> of <strong>${total}</strong> ingredients you already have (<strong>${coverage}% match</strong>).</p>
+                    <section class="meal-steps">
+                        <h4>Quick prep</h4>
+                        <ol>
+                            ${meal.steps.map(step => `<li>${step}</li>`).join('')}
+                        </ol>
+                    </section>
+                    <section class="meal-missing">
+                        <h4>Missing ingredients</h4>
+                        ${meal.missing.length === 0
+                            ? '<p class="all-set">You have everything you need. Time to cook!</p>'
+                            : `<ul>${meal.missing.map(item => `<li>${formatIngredient(item)}</li>`).join('')}</ul>`}
+                    </section>
+                `;
+
+                resultsContainer.appendChild(card);
+
+                meal.missing.forEach(item => {
+                    const formatted = formatIngredient(item);
+                    if (!missingSummary.has(formatted)) {
+                        missingSummary.set(formatted, new Set());
+                    }
+                    missingSummary.get(formatted).add(meal.name);
+                });
+            });
+
+            shoppingListContainer.innerHTML = '';
+            if (missingSummary.size === 0) {
+                shoppingEmptyState.hidden = false;
+            } else {
+                shoppingEmptyState.hidden = true;
+                Array.from(missingSummary.entries())
+                    .sort((a, b) => a[0].localeCompare(b[0]))
+                    .forEach(([ingredient, mealNames]) => {
+                        const li = document.createElement('li');
+                        const mealsNeeding = Array.from(mealNames).join(', ');
+                        li.innerHTML = `<span>${ingredient}</span><em>Needed for: ${mealsNeeding}</em>`;
+                        shoppingListContainer.appendChild(li);
+                    });
+            }
+        }
+
+        pantryForm.addEventListener('submit', handlePantrySubmit);
+
+        document.querySelectorAll('.chip').forEach(button => {
+            button.addEventListener('click', () => addIngredient(button.dataset.ingredient));
         });
 
-        addMessage('Hi, I\'m Nova. Ask me anything and I\'ll do my best to help!', 'Nova');
+        findMealsButton.addEventListener('click', renderSuggestions);
+
+        ingredientInput.addEventListener('focus', () => ingredientInput.select());
+
+        renderPantryIngredients();
+        renderSuggestions();
     </script>
 </body>
 </html>
