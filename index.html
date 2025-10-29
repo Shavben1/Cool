@@ -3,218 +3,296 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
+    <title>Nova · AI Chatbot</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <main class="game-card">
-        <h1>Snake</h1>
-        <p class="game-description">Use the arrow keys or WASD to steer. Eat the glowing apples to grow the snake and build your score!</p>
+    <main class="chat-card" aria-labelledby="chatTitle">
+        <header class="chat-header">
+            <div>
+                <h1 id="chatTitle">Nova</h1>
+                <p class="chat-subtitle">Your curious, always-on AI companion</p>
+            </div>
+            <div class="status-indicator" role="status" aria-live="polite">
+                <span class="status-dot" aria-hidden="true"></span>
+                Online
+            </div>
+        </header>
 
-        <div class="game-info" role="status" aria-live="polite">
-            <div class="score">Score: <span id="scoreValue">0</span></div>
-            <div id="statusDisplay" class="status">Press Start to play.</div>
+        <section id="chatLog" class="chat-log" role="log" aria-live="polite" aria-label="Conversation"></section>
+
+        <div class="suggestions" aria-label="Quick prompt suggestions">
+            <button type="button" class="suggestion" data-message="Give me a productivity tip.">Productivity tip</button>
+            <button type="button" class="suggestion" data-message="Explain quantum computing like I'm five.">Explain quantum computing</button>
+            <button type="button" class="suggestion" data-message="Help me plan a healthy dinner.">Plan a healthy dinner</button>
         </div>
 
-        <canvas id="gameBoard" width="400" height="400" role="img" aria-label="Snake game board"></canvas>
-
-        <button id="startButton" class="primary-button" type="button">Start Game</button>
+        <form id="chatForm" class="chat-input" autocomplete="off">
+            <label class="sr-only" for="userMessage">Message</label>
+            <input id="userMessage" name="message" type="text" placeholder="Ask Nova anything…" required aria-required="true">
+            <button type="submit" class="primary-button">Send</button>
+        </form>
     </main>
 
+    <template id="messageTemplate">
+        <article class="message">
+            <div class="message-meta">
+                <span class="message-author"></span>
+                <time class="message-time" aria-hidden="true"></time>
+            </div>
+            <p class="message-content"></p>
+        </article>
+    </template>
+
     <script>
-        const canvas = document.getElementById("gameBoard");
-        const ctx = canvas.getContext("2d");
-        const scoreValue = document.getElementById("scoreValue");
-        const statusDisplay = document.getElementById("statusDisplay");
-        const startButton = document.getElementById("startButton");
+        const chatLog = document.getElementById('chatLog');
+        const chatForm = document.getElementById('chatForm');
+        const userMessageInput = document.getElementById('userMessage');
+        const messageTemplate = document.getElementById('messageTemplate');
+        const suggestions = document.querySelectorAll('.suggestion');
 
-        const tileCount = 20;
-        const tileSize = canvas.width / tileCount;
-        const boardColor = "#0f172a";
-        const gridColor = "rgba(148, 163, 184, 0.1)";
-        const snakeColor = "#38bdf8";
-        const snakeHeadColor = "#0ea5e9";
-        const foodColor = "#f97316";
+        const conversationHistory = [];
 
-        let snake = [];
-        let direction = { x: 1, y: 0 };
-        let queuedDirection = { x: 1, y: 0 };
-        let lastDirection = { x: 1, y: 0 };
-        let food = { x: 0, y: 0 };
-        let score = 0;
-        let running = false;
-        let loopId = null;
-
-        function drawBoard() {
-            ctx.fillStyle = boardColor;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.strokeStyle = gridColor;
-            ctx.lineWidth = 1;
-            for (let i = 1; i < tileCount; i++) {
-                const offset = i * tileSize;
-                ctx.beginPath();
-                ctx.moveTo(offset, 0);
-                ctx.lineTo(offset, canvas.height);
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(0, offset);
-                ctx.lineTo(canvas.width, offset);
-                ctx.stroke();
+        const knowledgeBase = [
+            {
+                keywords: ['hello', 'hi', 'hey', 'greetings'],
+                responses: [
+                    'Hey there! How can I brighten your day?',
+                    'Hello! Ready to explore something new together?',
+                    'Hi! What would you like to chat about?'
+                ]
+            },
+            {
+                keywords: ['time', 'date', 'day'],
+                responder: () => {
+                    const now = new Date();
+                    const formatted = new Intl.DateTimeFormat([], {
+                        weekday: 'long',
+                        hour: 'numeric',
+                        minute: '2-digit'
+                    }).format(now);
+                    return `It\'s ${formatted}. Plenty of time to learn something cool.`;
+                }
+            },
+            {
+                keywords: ['joke', 'laugh'],
+                responses: [
+                    'Why did the neural network take up meditation? To reduce its inner error.',
+                    'I told a joke to an algorithm once. It didn\'t get it, but it tried to optimize its response anyway!',
+                    'What do you call a robot who takes the scenic route? A detour-ministic system.'
+                ]
+            },
+            {
+                keywords: ['productivity', 'focus', 'motivation'],
+                responses: [
+                    'Try the 50/10 rhythm: work with full focus for 50 minutes, then give yourself 10 minutes to reset. Your brain will thank you.',
+                    'A productivity boost tip: decide on the single most important outcome for the next hour, then block everything else until it\'s done.'
+                ]
+            },
+            {
+                keywords: ['quantum', 'physics'],
+                responses: [
+                    'Imagine classical bits as coins that are either heads or tails. Quantum bits are like coins spinning in the air—able to be a mix of both until observed.',
+                    'Quantum computing lets us use superposition and entanglement to solve certain problems much faster than classical machines could dream of.'
+                ]
+            },
+            {
+                keywords: ['plan', 'dinner', 'meal', 'recipe'],
+                responses: [
+                    'How about grilled salmon with roasted vegetables and a quinoa salad? Balanced, bright, and quick to put together.',
+                    'Consider a veggie stir-fry with tofu, bell peppers, snow peas, and a ginger soy glaze served over brown rice. Delicious and nourishing!'
+                ]
+            },
+            {
+                keywords: ['stressed', 'overwhelmed', 'anxious'],
+                responses: [
+                    'Take a gentle breath in for 4 counts, hold for 4, and exhale for 6. Let the nervous system settle, then we can plan your next step.',
+                    'It\'s okay to feel overwhelmed. Let\'s break things into the smallest next action so it feels manageable.'
+                ]
             }
+        ];
+
+        const fallbackResponses = [
+            'That\'s fascinating. Tell me more so I can keep up with you.',
+            'I\'m piecing that together—what outcome would make this feel like a win?',
+            'Curious! I can help brainstorm, explain, or just listen. Where should we start?',
+            'Let\'s explore that. What\'s the part you\'re most unsure about?'
+        ];
+
+        const contextualResponses = [
+            (input) => {
+                if (/(who|what) are you|your name/.test(input)) {
+                    return 'I\'m Nova, a friendly AI buddy living entirely in your browser. I draw from patterns, context, and a splash of curiosity to respond.';
+                }
+                return null;
+            },
+            (input) => {
+                if (/help|assist/.test(input)) {
+                    return 'I\'m here to help! Ask me for explanations, brainstorming, daily planning, or just a thoughtful conversation.';
+                }
+                return null;
+            },
+            (input) => {
+                const match = input.match(/define (.+)/);
+                if (match) {
+                    return `Let\'s break down “${match[1]}”. What about it has you curious?`;
+                }
+                return null;
+            },
+            (input) => {
+                if (/thank/.test(input)) {
+                    return 'Happy to help! If anything else pops up, I\'m just a message away.';
+                }
+                return null;
+            },
+            (input) => {
+                if (/weather/.test(input)) {
+                    return 'I don\'t have real-time weather data, but I can help you plan for a sunny, rainy, or cozy day regardless!';
+                }
+                return null;
+            },
+            (input) => {
+                if (/idea|brainstorm/.test(input)) {
+                    const topics = conversationHistory.slice(-3).map(item => item.text).join('; ');
+                    return `Okay, let\'s ideate. From what I\'ve heard so far (${topics || 'just getting started'}), what would progress look like to you?`;
+                }
+                return null;
+            }
+        ];
+
+        function addMessage(content, author) {
+            const clone = messageTemplate.content.cloneNode(true);
+            const article = clone.querySelector('.message');
+            article.classList.add(author === 'Nova' ? 'message-ai' : 'message-user');
+
+            const authorEl = clone.querySelector('.message-author');
+            const timeEl = clone.querySelector('.message-time');
+            const contentEl = clone.querySelector('.message-content');
+
+            authorEl.textContent = author;
+            contentEl.textContent = content;
+            timeEl.textContent = new Intl.DateTimeFormat([], { hour: 'numeric', minute: '2-digit' }).format(new Date());
+
+            chatLog.appendChild(clone);
+            chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
         }
 
-        function drawSnake() {
-            snake.forEach((segment, index) => {
-                const x = segment.x * tileSize;
-                const y = segment.y * tileSize;
-                ctx.fillStyle = index === snake.length - 1 ? snakeHeadColor : snakeColor;
-                ctx.fillRect(x + 1, y + 1, tileSize - 2, tileSize - 2);
-            });
+        function showTypingIndicator() {
+            const typing = document.createElement('div');
+            typing.className = 'typing-indicator';
+            typing.setAttribute('role', 'status');
+            typing.innerHTML = `<span></span><span></span><span></span>`;
+            chatLog.appendChild(typing);
+            chatLog.dataset.typing = 'true';
+            chatLog.scrollTo({ top: chatLog.scrollHeight, behavior: 'smooth' });
         }
 
-        function drawFood() {
-            ctx.fillStyle = foodColor;
-            const radius = tileSize / 2.4;
-            const centerX = food.x * tileSize + tileSize / 2;
-            const centerY = food.y * tileSize + tileSize / 2;
-            const gradient = ctx.createRadialGradient(centerX, centerY, radius / 4, centerX, centerY, radius);
-            gradient.addColorStop(0, "#fb923c");
-            gradient.addColorStop(1, foodColor);
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
-            ctx.fill();
+        function removeTypingIndicator() {
+            const typing = chatLog.querySelector('.typing-indicator');
+            if (typing) {
+                typing.remove();
+            }
+            delete chatLog.dataset.typing;
         }
 
-        function updateScore() {
-            scoreValue.textContent = score;
+        function randomItem(list) {
+            return list[Math.floor(Math.random() * list.length)];
         }
 
-        function setStatus(message) {
-            statusDisplay.textContent = message;
+        function searchKnowledgeBase(input) {
+            const lower = input.toLowerCase();
+            for (const entry of knowledgeBase) {
+                if (entry.keywords.some(keyword => lower.includes(keyword))) {
+                    if (entry.responder) {
+                        return entry.responder(lower);
+                    }
+                    return randomItem(entry.responses);
+                }
+            }
+            return null;
         }
 
-        function spawnFood() {
-            let newFood;
-            do {
-                newFood = {
-                    x: Math.floor(Math.random() * tileCount),
-                    y: Math.floor(Math.random() * tileCount)
-                };
-            } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
-            food = newFood;
+        function searchContextual(input) {
+            for (const resolver of contextualResponses) {
+                const result = resolver(input);
+                if (result) {
+                    return result;
+                }
+            }
+            return null;
         }
 
-        function resetGame() {
-            snake = [
-                { x: 9, y: 10 },
-                { x: 10, y: 10 },
-                { x: 11, y: 10 }
+        function craftAdaptiveResponse(input) {
+            const summary = conversationHistory.slice(-2).map(item => item.text).join(' · ');
+            const prompts = [
+                `You mentioned ${summary || 'we just met'}—where should we go from here?`,
+                `I\'m sensing a theme around ${extractTheme()} so far. Want to explore it deeper?`,
+                'Give me a hint: are we problem-solving, learning, or just vibing right now?'
             ];
-            direction = { x: 1, y: 0 };
-            queuedDirection = { x: 1, y: 0 };
-            lastDirection = { x: 1, y: 0 };
-            score = 0;
-            updateScore();
-            spawnFood();
-            setStatus("Game on! Avoid the walls and your tail.");
+            return randomItem(prompts);
         }
 
-        function gameOver() {
-            running = false;
-            clearInterval(loopId);
-            setStatus("Game over! Press Start to try again.");
+        function extractTheme() {
+            const text = conversationHistory.map(item => item.text).join(' ');
+            if (!text) return 'curiosity';
+            if (/work|project|deadline/.test(text)) return 'productivity';
+            if (/learn|study|explain/.test(text)) return 'learning';
+            if (/travel|adventure|trip/.test(text)) return 'travel ideas';
+            if (/health|dinner|meal/.test(text)) return 'wellness';
+            return 'whatever is on your mind';
         }
 
-        function tick() {
-            direction = queuedDirection;
-            const head = snake[snake.length - 1];
-            const newHead = {
-                x: head.x + direction.x,
-                y: head.y + direction.y
-            };
+        function generateResponse(input) {
+            const contextual = searchContextual(input);
+            if (contextual) {
+                return contextual;
+            }
 
-            if (newHead.x < 0 || newHead.x >= tileCount || newHead.y < 0 || newHead.y >= tileCount) {
-                gameOver();
-                drawFrame();
+            const fromKnowledge = searchKnowledgeBase(input);
+            if (fromKnowledge) {
+                return fromKnowledge;
+            }
+
+            return craftAdaptiveResponse(input) || randomItem(fallbackResponses);
+        }
+
+        function handleUserMessage(message) {
+            const trimmed = message.trim();
+            if (!trimmed) {
                 return;
             }
+            conversationHistory.push({ author: 'You', text: trimmed });
+            addMessage(trimmed, 'You');
 
-            if (snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
-                gameOver();
-                drawFrame();
-                return;
-            }
+            showTypingIndicator();
 
-            snake.push(newHead);
-
-            if (newHead.x === food.x && newHead.y === food.y) {
-                score += 10;
-                updateScore();
-                spawnFood();
-            } else {
-                snake.shift();
-            }
-
-            lastDirection = direction;
-            drawFrame();
+            setTimeout(() => {
+                removeTypingIndicator();
+                const response = generateResponse(trimmed);
+                conversationHistory.push({ author: 'Nova', text: response });
+                addMessage(response, 'Nova');
+            }, 600 + Math.random() * 600);
         }
 
-        function drawFrame() {
-            drawBoard();
-            drawFood();
-            drawSnake();
-        }
+        chatForm.addEventListener('submit', event => {
+            event.preventDefault();
+            const value = userMessageInput.value;
+            userMessageInput.value = '';
+            handleUserMessage(value);
+            userMessageInput.focus();
+        });
 
-        function startGame() {
-            if (running) {
-                return;
-            }
-            resetGame();
-            running = true;
-            drawFrame();
-            loopId = setInterval(tick, 120);
-        }
+        suggestions.forEach(button => {
+            button.addEventListener('click', () => {
+                userMessageInput.value = button.dataset.message;
+                userMessageInput.focus();
+            });
+        });
 
-        function handleKeyDown(event) {
-            const key = event.key.toLowerCase();
-            const mapping = {
-                arrowup: { x: 0, y: -1 },
-                w: { x: 0, y: -1 },
-                arrowdown: { x: 0, y: 1 },
-                s: { x: 0, y: 1 },
-                arrowleft: { x: -1, y: 0 },
-                a: { x: -1, y: 0 },
-                arrowright: { x: 1, y: 0 },
-                d: { x: 1, y: 0 }
-            };
-
-            if (!(key in mapping)) {
-                return;
-            }
-
-            const proposed = mapping[key];
-            if (lastDirection.x + proposed.x === 0 && lastDirection.y + proposed.y === 0) {
-                return;
-            }
-
-            queuedDirection = proposed;
-
-            if (!running) {
-                startGame();
-            }
-        }
-
-        startButton.addEventListener("click", startGame);
-        window.addEventListener("keydown", handleKeyDown);
-
-        spawnFood();
-        drawFrame();
+        addMessage('Hi, I\'m Nova. Ask me anything and I\'ll do my best to help!', 'Nova');
     </script>
 </body>
 </html>
