@@ -3,45 +3,218 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Color Changing Button</title>
+    <title>Snake Game</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <main class="card">
-        <h1>Color Changing Button</h1>
-        <p>Click the button below to cycle through a playful palette. Each click applies a new color theme to the button so you can pick your favourite.</p>
-        <button id="colorButton" class="color-button" type="button" aria-live="polite">
-            Click me to change my color
-        </button>
+    <main class="game-card">
+        <h1>Snake</h1>
+        <p class="game-description">Use the arrow keys or WASD to steer. Eat the glowing apples to grow the snake and build your score!</p>
+
+        <div class="game-info" role="status" aria-live="polite">
+            <div class="score">Score: <span id="scoreValue">0</span></div>
+            <div id="statusDisplay" class="status">Press Start to play.</div>
+        </div>
+
+        <canvas id="gameBoard" width="400" height="400" role="img" aria-label="Snake game board"></canvas>
+
+        <button id="startButton" class="primary-button" type="button">Start Game</button>
     </main>
 
     <script>
-        const colors = [
-            { background: "#6366f1", text: "#ffffff", label: "Lavender" },
-            { background: "#f59e0b", text: "#1f2933", label: "Sunrise" },
-            { background: "#10b981", text: "#043d3d", label: "Mint" },
-            { background: "#ef4444", text: "#ffffff", label: "Rose" },
-            { background: "#0ea5e9", text: "#021f3a", label: "Sky" }
-        ];
+        const canvas = document.getElementById("gameBoard");
+        const ctx = canvas.getContext("2d");
+        const scoreValue = document.getElementById("scoreValue");
+        const statusDisplay = document.getElementById("statusDisplay");
+        const startButton = document.getElementById("startButton");
 
-        const button = document.getElementById("colorButton");
-        let index = 0;
+        const tileCount = 20;
+        const tileSize = canvas.width / tileCount;
+        const boardColor = "#0f172a";
+        const gridColor = "rgba(148, 163, 184, 0.1)";
+        const snakeColor = "#38bdf8";
+        const snakeHeadColor = "#0ea5e9";
+        const foodColor = "#f97316";
 
-        function applyColor(color) {
-            button.style.backgroundColor = color.background;
-            button.style.color = color.text;
-            button.textContent = `Color: ${color.label}`;
+        let snake = [];
+        let direction = { x: 1, y: 0 };
+        let queuedDirection = { x: 1, y: 0 };
+        let lastDirection = { x: 1, y: 0 };
+        let food = { x: 0, y: 0 };
+        let score = 0;
+        let running = false;
+        let loopId = null;
+
+        function drawBoard() {
+            ctx.fillStyle = boardColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.strokeStyle = gridColor;
+            ctx.lineWidth = 1;
+            for (let i = 1; i < tileCount; i++) {
+                const offset = i * tileSize;
+                ctx.beginPath();
+                ctx.moveTo(offset, 0);
+                ctx.lineTo(offset, canvas.height);
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(0, offset);
+                ctx.lineTo(canvas.width, offset);
+                ctx.stroke();
+            }
         }
 
-        button.addEventListener("click", () => {
-            index = (index + 1) % colors.length;
-            applyColor(colors[index]);
-        });
+        function drawSnake() {
+            snake.forEach((segment, index) => {
+                const x = segment.x * tileSize;
+                const y = segment.y * tileSize;
+                ctx.fillStyle = index === snake.length - 1 ? snakeHeadColor : snakeColor;
+                ctx.fillRect(x + 1, y + 1, tileSize - 2, tileSize - 2);
+            });
+        }
 
-        applyColor(colors[index]);
+        function drawFood() {
+            ctx.fillStyle = foodColor;
+            const radius = tileSize / 2.4;
+            const centerX = food.x * tileSize + tileSize / 2;
+            const centerY = food.y * tileSize + tileSize / 2;
+            const gradient = ctx.createRadialGradient(centerX, centerY, radius / 4, centerX, centerY, radius);
+            gradient.addColorStop(0, "#fb923c");
+            gradient.addColorStop(1, foodColor);
+            ctx.fillStyle = gradient;
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function updateScore() {
+            scoreValue.textContent = score;
+        }
+
+        function setStatus(message) {
+            statusDisplay.textContent = message;
+        }
+
+        function spawnFood() {
+            let newFood;
+            do {
+                newFood = {
+                    x: Math.floor(Math.random() * tileCount),
+                    y: Math.floor(Math.random() * tileCount)
+                };
+            } while (snake.some(segment => segment.x === newFood.x && segment.y === newFood.y));
+            food = newFood;
+        }
+
+        function resetGame() {
+            snake = [
+                { x: 9, y: 10 },
+                { x: 10, y: 10 },
+                { x: 11, y: 10 }
+            ];
+            direction = { x: 1, y: 0 };
+            queuedDirection = { x: 1, y: 0 };
+            lastDirection = { x: 1, y: 0 };
+            score = 0;
+            updateScore();
+            spawnFood();
+            setStatus("Game on! Avoid the walls and your tail.");
+        }
+
+        function gameOver() {
+            running = false;
+            clearInterval(loopId);
+            setStatus("Game over! Press Start to try again.");
+        }
+
+        function tick() {
+            direction = queuedDirection;
+            const head = snake[snake.length - 1];
+            const newHead = {
+                x: head.x + direction.x,
+                y: head.y + direction.y
+            };
+
+            if (newHead.x < 0 || newHead.x >= tileCount || newHead.y < 0 || newHead.y >= tileCount) {
+                gameOver();
+                drawFrame();
+                return;
+            }
+
+            if (snake.some(segment => segment.x === newHead.x && segment.y === newHead.y)) {
+                gameOver();
+                drawFrame();
+                return;
+            }
+
+            snake.push(newHead);
+
+            if (newHead.x === food.x && newHead.y === food.y) {
+                score += 10;
+                updateScore();
+                spawnFood();
+            } else {
+                snake.shift();
+            }
+
+            lastDirection = direction;
+            drawFrame();
+        }
+
+        function drawFrame() {
+            drawBoard();
+            drawFood();
+            drawSnake();
+        }
+
+        function startGame() {
+            if (running) {
+                return;
+            }
+            resetGame();
+            running = true;
+            drawFrame();
+            loopId = setInterval(tick, 120);
+        }
+
+        function handleKeyDown(event) {
+            const key = event.key.toLowerCase();
+            const mapping = {
+                arrowup: { x: 0, y: -1 },
+                w: { x: 0, y: -1 },
+                arrowdown: { x: 0, y: 1 },
+                s: { x: 0, y: 1 },
+                arrowleft: { x: -1, y: 0 },
+                a: { x: -1, y: 0 },
+                arrowright: { x: 1, y: 0 },
+                d: { x: 1, y: 0 }
+            };
+
+            if (!(key in mapping)) {
+                return;
+            }
+
+            const proposed = mapping[key];
+            if (lastDirection.x + proposed.x === 0 && lastDirection.y + proposed.y === 0) {
+                return;
+            }
+
+            queuedDirection = proposed;
+
+            if (!running) {
+                startGame();
+            }
+        }
+
+        startButton.addEventListener("click", startGame);
+        window.addEventListener("keydown", handleKeyDown);
+
+        spawnFood();
+        drawFrame();
     </script>
 </body>
 </html>
