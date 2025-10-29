@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Changing Button</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="card">
+        <h1>Color Changing Button</h1>
+        <p>Click the button below to cycle through a playful palette. Each click applies a new color theme to the button so you can pick your favourite.</p>
+        <button id="colorButton" class="color-button" type="button" aria-live="polite">
+            Click me to change my color
+        </button>
+    </main>
+
+    <script>
+        const colors = [
+            { background: "#6366f1", text: "#ffffff", label: "Lavender" },
+            { background: "#f59e0b", text: "#1f2933", label: "Sunrise" },
+            { background: "#10b981", text: "#043d3d", label: "Mint" },
+            { background: "#ef4444", text: "#ffffff", label: "Rose" },
+            { background: "#0ea5e9", text: "#021f3a", label: "Sky" }
+        ];
+
+        const button = document.getElementById("colorButton");
+        let index = 0;
+
+        function applyColor(color) {
+            button.style.backgroundColor = color.background;
+            button.style.color = color.text;
+            button.textContent = `Color: ${color.label}`;
+        }
+
+        button.addEventListener("click", () => {
+            index = (index + 1) % colors.length;
+            applyColor(colors[index]);
+        });
+
+        applyColor(colors[index]);
+    </script>
+</body>
+</html>
