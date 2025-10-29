@@ -10,10 +10,22 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="ambient-shapes" aria-hidden="true">
+        <span class="shape shape-one"></span>
+        <span class="shape shape-two"></span>
+        <span class="shape shape-three"></span>
+    </div>
+
     <header class="site-header">
         <div class="container">
+            <p class="site-pretitle">Your kitchen, your canvas</p>
             <h1 class="site-title">Mealify</h1>
             <p class="site-tagline">Turn what you already have into delicious, doable meals with quick prep steps and a ready-made shopping list.</p>
+            <div class="hero-badges" aria-hidden="true">
+                <span class="hero-badge">✨ 5-minute inspo</span>
+                <span class="hero-badge">🔥 Flavor-forward picks</span>
+                <span class="hero-badge">🛒 Smart shopping intel</span>
+            </div>
         </div>
     </header>
 
@@ -52,7 +64,7 @@
                 <p id="emptyPantry" class="empty-state">No ingredients yet. Add a few to start planning your next meal!</p>
             </div>
 
-            <button id="findMeals" type="button" class="cta-button">Find meals</button>
+            <button id="findMeals" type="button" class="cta-button">Find meals ⚡️</button>
         </section>
 
         <section class="panel results" aria-labelledby="resultsTitle">

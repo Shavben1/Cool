@@ -1,15 +1,19 @@
 :root {
     color-scheme: light;
-    --bg: #f8f6f2;
-    --panel: #ffffff;
-    --accent: #2f7d57;
-    --accent-soft: #d9efe3;
-    --text: #1f1f1f;
-    --muted: #5f6368;
-    --border: rgba(31, 31, 31, 0.08);
-    --shadow: 0 16px 40px -24px rgba(18, 61, 37, 0.45);
-    --radius-lg: 24px;
-    --radius-md: 16px;
+    --bg: #f6f4ff;
+    --panel: rgba(255, 255, 255, 0.9);
+    --accent: #5c39ff;
+    --accent-alt: #ff6f61;
+    --accent-soft: rgba(92, 57, 255, 0.1);
+    --text: #1b1b2f;
+    --muted: #565b7b;
+    --border: rgba(88, 75, 196, 0.18);
+    --shadow: 0 25px 45px -28px rgba(80, 59, 202, 0.5);
+    --radius-lg: 26px;
+    --radius-md: 18px;
+    --gradient-hero: linear-gradient(135deg, #5c39ff 0%, #ff6f61 45%, #ffb94f 100%);
+    --gradient-chip: linear-gradient(135deg, rgba(92, 57, 255, 0.12), rgba(255, 111, 97, 0.12));
+    --gradient-panel: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(249, 246, 255, 0.85));
     font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
@@ -20,12 +24,60 @@
 body {
     margin: 0;
     min-height: 100vh;
-    background: radial-gradient(circle at top right, rgba(47, 125, 87, 0.12), transparent 55%), var(--bg);
+    background: radial-gradient(circle at 12% 8%, rgba(92, 57, 255, 0.25), transparent 55%), radial-gradient(circle at 85% 20%, rgba(255, 111, 97, 0.28), transparent 55%), var(--bg);
     color: var(--text);
     font-family: inherit;
     line-height: 1.6;
     display: flex;
     flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.ambient-shapes {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -2;
+}
+
+.ambient-shapes .shape {
+    position: absolute;
+    width: 320px;
+    height: 320px;
+    filter: blur(140px);
+    opacity: 0.7;
+    transform: translateZ(0);
+    animation: drift 18s ease-in-out infinite;
+}
+
+.ambient-shapes .shape-one {
+    background: #ff6f61;
+    top: -80px;
+    left: -120px;
+}
+
+.ambient-shapes .shape-two {
+    background: #5c39ff;
+    top: 12%;
+    right: -150px;
+    animation-delay: 4s;
+}
+
+.ambient-shapes .shape-three {
+    background: #ffb94f;
+    bottom: -160px;
+    left: 35%;
+    animation-delay: 8s;
+}
+
+@keyframes drift {
+    0%, 100% {
+        transform: translate3d(0, 0, 0) scale(1);
+    }
+    50% {
+        transform: translate3d(0, -30px, 0) scale(1.1);
+    }
 }
 
 img {
@@ -39,21 +91,79 @@ img {
 }
 
 .site-header {
-    padding: 3.5rem 0 2.5rem;
+    padding: 4.2rem 0 3.1rem;
     text-align: center;
+    position: relative;
+    z-index: 1;
+}
+
+.site-pretitle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.4rem 0.9rem;
+    border-radius: 999px;
+    background: rgba(92, 57, 255, 0.12);
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin: 0 0 1rem;
 }
 
 .site-title {
     margin: 0;
-    font-size: clamp(2.1rem, 4vw, 2.75rem);
-    font-weight: 700;
+    font-size: clamp(2.4rem, 6vw, 3.75rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    background: var(--gradient-hero);
+    -webkit-background-clip: text;
+    color: transparent;
 }
 
 .site-tagline {
     margin: 0.8rem auto 0;
     max-width: 46ch;
     color: var(--muted);
-    font-size: 1.05rem;
+    font-size: 1.08rem;
+}
+
+.hero-badges {
+    margin-top: 1.6rem;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+}
+
+.hero-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.55rem 1.1rem;
+    border-radius: 999px;
+    background: rgba(27, 27, 47, 0.75);
+    color: #f7f6ff;
+    font-weight: 600;
+    font-size: 0.95rem;
+    box-shadow: 0 18px 30px -24px rgba(27, 27, 47, 0.7);
+    position: relative;
+    overflow: hidden;
+}
+
+.hero-badge::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.55), transparent 55%);
+    opacity: 0.5;
+    transform: translateX(-60%);
+    transition: transform 0.6s ease;
+}
+
+.hero-badge:hover::before {
+    transform: translateX(40%);
 }
 
 .layout {
@@ -70,7 +180,7 @@ img {
 }
 
 .panel {
-    background: var(--panel);
+    background: var(--gradient-panel);
     border-radius: var(--radius-lg);
     padding: clamp(1.5rem, 4vw, 2.25rem);
     box-shadow: var(--shadow);
@@ -82,7 +192,18 @@ img {
     position: absolute;
     inset: 0;
     border-radius: inherit;
-    border: 1px solid var(--border);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    pointer-events: none;
+    background: linear-gradient(140deg, rgba(92, 57, 255, 0.18), transparent 40%);
+    mix-blend-mode: screen;
+}
+
+.panel::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: calc(var(--radius-lg) - 1px);
+    border: 1px solid rgba(92, 57, 255, 0.14);
     pointer-events: none;
 }
 
@@ -111,14 +232,14 @@ img {
     border-radius: var(--radius-md);
     padding: 0.85rem 1.1rem;
     font-size: 1rem;
-    background: #fafafa;
+    background: rgba(255, 255, 255, 0.75);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .pantry-input input:focus {
     outline: none;
-    border-color: rgba(47, 125, 87, 0.55);
-    box-shadow: 0 0 0 4px rgba(47, 125, 87, 0.18);
+    border-color: rgba(92, 57, 255, 0.5);
+    box-shadow: 0 0 0 4px rgba(92, 57, 255, 0.18);
 }
 
 .primary-button {
@@ -128,16 +249,16 @@ img {
     padding: 0.85rem 1.4rem;
     font-size: 1rem;
     font-weight: 600;
-    background: var(--accent);
-    color: white;
+    background: linear-gradient(135deg, var(--accent), #8a68ff);
+    color: #fff;
     cursor: pointer;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
 .primary-button:hover,
 .primary-button:focus-visible {
-    transform: translateY(-1px);
-    box-shadow: 0 10px 22px -16px rgba(17, 91, 60, 0.7);
+    transform: translateY(-2px);
+    box-shadow: 0 18px 32px -24px rgba(92, 57, 255, 0.35);
 }
 
 .suggested-ingredients h3,
@@ -154,8 +275,8 @@ img {
 }
 
 .chip {
-    border: 1px solid rgba(47, 125, 87, 0.3);
-    background: rgba(47, 125, 87, 0.08);
+    border: none;
+    background: var(--gradient-chip);
     color: var(--accent);
     border-radius: 999px;
     padding: 0.4rem 0.95rem;
@@ -167,8 +288,8 @@ img {
 
 .chip:hover,
 .chip:focus-visible {
-    background: rgba(47, 125, 87, 0.18);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, rgba(92, 57, 255, 0.22), rgba(255, 111, 97, 0.22));
+    transform: translateY(-1px) scale(1.02);
 }
 
 .ingredient-list {
@@ -184,14 +305,14 @@ img {
     display: inline-flex;
     align-items: center;
     gap: 0.6rem;
-    background: var(--accent-soft);
+    background: rgba(255, 255, 255, 0.72);
     color: var(--accent);
     padding: 0.5rem 0.9rem;
     border-radius: 999px;
     font-weight: 500;
     position: relative;
     overflow: hidden;
-    border: 1px solid rgba(47, 125, 87, 0.25);
+    border: 1px solid rgba(92, 57, 255, 0.22);
 }
 
 .ingredient-pill button {
@@ -211,7 +332,7 @@ img {
 
 .ingredient-pill button:hover,
 .ingredient-pill button:focus-visible {
-    background: rgba(47, 125, 87, 0.18);
+    background: rgba(92, 57, 255, 0.16);
     transform: scale(1.05);
 }
 
@@ -222,16 +343,17 @@ img {
     padding: 1rem 1.5rem;
     font-size: 1.05rem;
     font-weight: 600;
-    background: linear-gradient(135deg, var(--accent), #49a07c);
-    color: white;
+    background: linear-gradient(120deg, var(--accent), var(--accent-alt));
+    color: #fff;
     cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+    box-shadow: 0 20px 40px -28px rgba(92, 57, 255, 0.7);
 }
 
 .cta-button:hover,
 .cta-button:focus-visible {
-    transform: translateY(-2px);
-    box-shadow: 0 18px 32px -22px rgba(17, 91, 60, 0.9);
+    transform: translateY(-3px) scale(1.01);
+    box-shadow: 0 26px 45px -30px rgba(92, 57, 255, 0.75);
 }
 
 .suggestions-list {
@@ -241,10 +363,33 @@ img {
 
 .meal-card {
     border-radius: var(--radius-lg);
-    padding: clamp(1.25rem, 2vw, 1.75rem);
-    border: 1px solid var(--border);
-    background: #fff;
-    box-shadow: 0 18px 36px -30px rgba(18, 61, 37, 0.35);
+    padding: clamp(1.4rem, 2vw, 1.9rem);
+    border: 1px solid rgba(92, 57, 255, 0.16);
+    background: rgba(255, 255, 255, 0.92);
+    box-shadow: 0 24px 55px -36px rgba(32, 28, 72, 0.6);
+    position: relative;
+    overflow: hidden;
+}
+
+.meal-card::before {
+    content: '';
+    position: absolute;
+    inset: -1px;
+    border-radius: inherit;
+    background: linear-gradient(130deg, rgba(92, 57, 255, 0.3), rgba(255, 111, 97, 0.25), transparent 70%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.meal-card:hover::before,
+.meal-card:focus-within::before {
+    opacity: 1;
+}
+
+.meal-card * {
+    position: relative;
+    z-index: 1;
 }
 
 .meal-card__header {
@@ -275,7 +420,7 @@ img {
     gap: 0.4rem;
     padding: 0.35rem 0.7rem;
     border-radius: 999px;
-    background: rgba(47, 125, 87, 0.1);
+    background: rgba(92, 57, 255, 0.12);
     color: var(--accent);
     font-size: 0.85rem;
     font-weight: 600;
@@ -283,7 +428,8 @@ img {
 
 .meal-coverage {
     margin: 1rem 0;
-    font-size: 0.98rem;
+    font-size: 1rem;
+    font-weight: 500;
 }
 
 .meal-steps h4,
@@ -309,7 +455,7 @@ img {
 .meal-missing .all-set {
     margin: 0;
     color: var(--accent);
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .shopping-list ul {
@@ -326,8 +472,8 @@ img {
     gap: 0.75rem;
     padding: 0.75rem 0.9rem;
     border-radius: var(--radius-md);
-    border: 1px solid rgba(47, 125, 87, 0.15);
-    background: rgba(47, 125, 87, 0.05);
+    border: 1px solid rgba(92, 57, 255, 0.12);
+    background: rgba(92, 57, 255, 0.06);
     font-weight: 500;
 }
 
@@ -341,16 +487,16 @@ img {
     margin: 0;
     padding: 1rem 1.2rem;
     border-radius: var(--radius-md);
-    background: rgba(31, 31, 31, 0.05);
+    background: rgba(27, 27, 47, 0.04);
     color: var(--muted);
-    font-size: 0.95rem;
+    font-size: 0.97rem;
 }
 
 .site-footer {
     margin-top: auto;
-    padding: 2.5rem 0 3.5rem;
+    padding: 3.1rem 0 3.8rem;
     text-align: center;
-    color: var(--muted);
+    color: rgba(27, 27, 47, 0.7);
     font-size: 0.95rem;
 }
 
@@ -393,5 +539,9 @@ img {
 
     .meal-card__header h3 {
         font-size: 1.25rem;
+    }
+
+    .hero-badge {
+        font-size: 0.85rem;
     }
 }

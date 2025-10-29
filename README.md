@@ -9,6 +9,7 @@ Mealify is a responsive single-page web app that helps you plan meals around the
 - **Quick prep guides** – Each suggestion includes a short set of actionable steps to take you from pantry to plate fast.
 - **Dynamic shopping list** – Missing items across all suggested meals are combined into one tidy list so you know exactly what to pick up.
 - **Responsive design** – Works beautifully on phones, tablets, and desktops with thoughtful spacing and accessible controls.
+- **Electric atmosphere** – A vibrant gradient theme, animated ambient lighting, and bold typography keep the experience feeling celebratory.
 
 ## Getting started
 
