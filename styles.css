@@ -1,0 +1,83 @@
+:root {
+    color-scheme: light dark;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background-color: #0f172a;
+    background-image: radial-gradient(circle at top left, rgba(99, 102, 241, 0.25), transparent),
+                      radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.2), transparent);
+    min-height: 100%;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    color: #e2e8f0;
+}
+
+.card {
+    max-width: 480px;
+    width: 100%;
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(148, 163, 184, 0.2);
+    border-radius: 18px;
+    padding: 32px;
+    text-align: center;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(12px);
+}
+
+.card h1 {
+    font-size: 2.2rem;
+    margin: 0 0 12px 0;
+    font-weight: 600;
+}
+
+.card p {
+    margin: 0 0 28px 0;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: rgba(226, 232, 240, 0.85);
+}
+
+.color-button {
+    appearance: none;
+    border: none;
+    border-radius: 999px;
+    padding: 16px 32px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 12px 25px rgba(15, 23, 42, 0.35);
+}
+
+.color-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 35px rgba(15, 23, 42, 0.4);
+}
+
+.color-button:active {
+    transform: translateY(0);
+    box-shadow: 0 8px 18px rgba(15, 23, 42, 0.35);
+}
+
+@media (max-width: 480px) {
+    .card {
+        padding: 28px 24px;
+    }
+
+    .card h1 {
+        font-size: 1.8rem;
+    }
+
+    .color-button {
+        width: 100%;
+    }
+}
